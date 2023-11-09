@@ -1,0 +1,31 @@
+diff --git a/libavformat/mpegtsenc.c b/libavformat/mpegtsenc.c
+index ceed089587..6ad531488e 100644
+--- a/libavformat/mpegtsenc.c
++++ b/libavformat/mpegtsenc.c
+@@ -115,6 +115,7 @@ typedef struct MpegTSWrite {
+ #define MPEGTS_FLAG_DISCONT         0x10
+ #define MPEGTS_FLAG_NIT             0x20
+ #define MPEGTS_FLAG_OMIT_RAI        0x40
++#define MPEGTS_FLAG_OMIT_SDT        0x80
+     int flags;
+     int copyts;
+     int tables_version;
+@@ -1306,7 +1307,8 @@ static void retransmit_si_info(AVFormatContext *s, int force_pat, int force_sdt,
+     ) {
+         if (pcr != AV_NOPTS_VALUE)
+             ts->last_sdt_ts = FFMAX(pcr, ts->last_sdt_ts);
+-        mpegts_write_sdt(s);
++        if (!(ts->flags & MPEGTS_FLAG_OMIT_SDT))
++            mpegts_write_sdt(s);
+     }
+     if ((pcr != AV_NOPTS_VALUE && ts->last_pat_ts == AV_NOPTS_VALUE) ||
+         (pcr != AV_NOPTS_VALUE && pcr - ts->last_pat_ts >= ts->pat_period) ||
+@@ -2316,6 +2318,8 @@ static const AVOption options[] = {
+       0, AV_OPT_TYPE_CONST, { .i64 = MPEGTS_FLAG_SYSTEM_B }, 0, INT_MAX, ENC, "mpegts_flags" },
+     { "initial_discontinuity", "Mark initial packets as discontinuous",
+       0, AV_OPT_TYPE_CONST, { .i64 = MPEGTS_FLAG_DISCONT }, 0, INT_MAX, ENC, "mpegts_flags" },
++    { "omit_sdt", "Disable SDT transmission",
++      0, AV_OPT_TYPE_CONST, { .i64 = MPEGTS_FLAG_OMIT_SDT}, 0, INT_MAX, ENC, "mpegts_flags" },
+     { "nit", "Enable NIT transmission",
+       0, AV_OPT_TYPE_CONST, { .i64 = MPEGTS_FLAG_NIT}, 0, INT_MAX, ENC, "mpegts_flags" },
+     { "omit_rai", "Disable writing of random access indicator",
